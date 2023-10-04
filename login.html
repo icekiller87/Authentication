@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagina de login</title>
+    <link rel="stylesheet" href="cssFile.css">
+</head>
+
+    <body>
+
+        <div id="login-box">
+            <div class="left">
+                <h1>Sign up</h1>
+        
+                <input type="text" id="email" name="email" placeholder="E-mail" />
+                <input type="password" id="password" name="password" placeholder="Password" />
+        
+                <input type="submit" id="login" name="login" value="Login" />
+            </div>
+        
+        <div class="right">
+            <span class="loginwith">Entrar com<br />Redes sociais</span>
+        
+            <button class="social-signin facebook">Entrar com facebook</button>
+            <button class="social-signin twitter">Entrar com twitter</button>
+            <button class="social-signin google">Entrar com Google</button>
+        </div> 
+        <div class="ou">OU</div>   
+        </div>    
+        </body>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import { getDatabase, set, ref, update } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword  } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBnOWQAe0tMFlMGn80Lhaue6HEBG1xwpQU",
+    authDomain: "authentication-96efe.firebaseapp.com",
+    databaseURL: "https://authentication-96efe-default-rtdb.firebaseio.com",
+    projectId: "authentication-96efe",
+    storageBucket: "authentication-96efe.appspot.com",
+    messagingSenderId: "594458889142",
+    appId: "1:594458889142:web:901ace0ef37438163a8f17"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const auth = getAuth();
+
+sighUp.addEventListener('click',(e) => {
+
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('password').value;
+    var username = document.getElementById('username').value;
+
+    createUserWithEmailAndPassword(auth, email, password)
+  .then((userCredential) => {
+    // Signed in 
+    const user = userCredential.user;
+
+    set(ref(database, 'users/' + user.uid,),{
+      username: username,
+      email: email
+    })
+
+    alert('user created!')
+    // ...
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+
+    alert(errorMessage);
+    // ..
+  });
+
+})
+
+login.addEventListener('click',(e)=>{
+  var email = document.getElementById('email').value;
+  var password = document.getElementById('password').value;
+
+  signInWithEmailAndPassword(auth, email, password)
+  .then((userCredential) => {
+    // Signed in 
+    const user = userCredential.user;
+
+    const dt = new Date();
+    update(ref(database, 'users/' + user.uid,),{
+      last_login: dt,
+    })
+
+    alert('User loged in"');
+    // ...
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+
+    alert(errorMessage);
+  });
+
+});
+
+</script> 
+
+</html>
