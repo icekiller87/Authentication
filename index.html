@@ -29,7 +29,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getDatabase, set, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+        import { getDatabase, set, ref, update } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -54,46 +54,54 @@
             const googleLoginButton = document.getElementById('google-login');
             const logoutButton = document.getElementById('logout');
 
-            // Função para exibir os dados do usuário no Firebase Realtime Database
-            function displayUserDataInDatabase(user) {
-                const uid = user.uid;
-                const userRef = ref(database, 'users/' + uid);
-
-                onValue(userRef, (snapshot) => {
-                    const userData = snapshot.val();
-
-                    if (userData) {
-                        // Exibe os dados do usuário no console (você pode exibi-los na página como desejar)
-                        console.log('User Data:', userData);
-                    }
-                });
-            }
-
             signUpButton.addEventListener('click', (e) => {
-                // ... (seu código de criação de usuário existente)
+                var email = document.getElementById('email').value;
+                var password = document.getElementById('password').value;
+                var username = document.getElementById('username').value;
+
+                createUserWithEmailAndPassword(auth, email, password)
+                    .then((userCredential) => {
+                        const user = userCredential.user;
+
+                        set(ref(database, 'users/' + user.uid), {
+                            username: username,
+                            email: email
+                        });
+
+                        alert('User created!');
+                    })
+                    .catch((error) => {
+                        const errorMessage = error.message;
+                        alert(errorMessage);
+                    });
             });
 
             loginButton.addEventListener('click', (e) => {
-                // ... (seu código de login existente)
+                var email = document.getElementById('email').value;
+                var password = document.getElementById('password').value;
+
+                signInWithEmailAndPassword(auth, email, password)
+                    .then((userCredential) => {
+                        const user = userCredential.user;
+
+                        const dt = new Date();
+                        update(ref(database, 'users/' + user.uid), {
+                            last_login: dt,
+                        });
+
+                        alert('User logged in!');
+                    })
+                    .catch((error) => {
+                        const errorMessage = error.message;
+                        alert(errorMessage);
+                    });
             });
 
             googleLoginButton.addEventListener('click', (e) => {
                 signInWithPopup(auth, googleProvider)
                     .then((result) => {
                         // Pode acessar as informações do usuário em result.user
-                        const user = result.user;
                         alert('Logged in with Google!');
-
-                        // Exibe os dados do usuário no Firebase Realtime Database
-                        displayUserDataInDatabase(user);
-
-                        // Adiciona o usuário ao banco de dados, incluindo o email
-                        const { uid, displayName, email } = user;
-                        set(ref(database, 'users/' + uid), {
-                            username: displayName,
-                            email: email,
-                            // Outros dados do usuário podem ser adicionados aqui
-                        });
                     })
                     .catch((error) => {
                         const errorMessage = error.message;
@@ -102,7 +110,14 @@
             });
 
             logoutButton.addEventListener('click', (e) => {
-                // ... (seu código de logout existente)
+                signOut(auth)
+                    .then(() => {
+                        alert('User logged out');
+                    })
+                    .catch((error) => {
+                        const errorMessage = error.message;
+                        alert(errorMessage);
+                    });
             });
         });
     </script>
