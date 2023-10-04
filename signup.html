@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta</title>
+    <link rel="stylesheet" href="cssFile.css">
+</head>
+<body>
+    <div id="signup-box">
+        <div class="left">
+            <h1>Criar Conta</h1>
+            <input type="text" id="username" name="username" placeholder="Username" />
+            <input type="text" id="email" name="email" placeholder="E-mail" />
+            <input type="password" id="password" name="password" placeholder="Password" />
+            <button id="signUp">Criar Conta</button>
+        </div>
+        <div class="right">
+            <button id="google-signup">Criar Conta com Google</button>
+            <button id="login">Já tenho uma conta</button> <!-- Botão para redirecionar para a página de login -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getDatabase, set, ref, update } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnOWQAe0tMFlMGn80Lhaue6HEBG1xwpQU",
+            authDomain: "authentication-96efe.firebaseapp.com",
+            databaseURL: "https://authentication-96efe-default-rtdb.firebaseio.com",
+            projectId: "authentication-96efe",
+            storageBucket: "authentication-96efe.appspot.com",
+            messagingSenderId: "594458889142",
+            appId: "1:594458889142:web:901ace0ef37438163a8f17"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth();
+        const googleProvider = new GoogleAuthProvider();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const signUpButton = document.getElementById('signUp');
+            const googleSignupButton = document.getElementById('google-signup');
+            const loginButton = document.getElementById('login'); // Botão para redirecionar para a página de login
+            const usernameField = document.getElementById('username'); // Campo de nome
+            const emailField = document.getElementById('email'); // Campo de e-mail
+            const passwordField = document.getElementById('password'); // Campo de senha
+
+            function createAccount() {
+    var email = emailField.value;
+    var password = passwordField.value;
+    var username = document.getElementById('username').value;
+
+    // Verificar se o e-mail já existe
+    fetchSignInMethodsForEmail(auth, email)
+        .then((signInMethods) => {
+            if (signInMethods.length > 0) {
+                alert('E-mail já existe.');
+            } else {
+                // Criar a conta se o e-mail não existir
+                createUserWithEmailAndPassword(auth, email, password)
+                    .then((userCredential) => {
+                        const user = userCredential.user;
+
+                        set(ref(database, 'users/' + user.uid), {
+                            username: username,
+                            email: email
+                        });
+
+                        alert('User created!');
+                    })
+                    .catch((error) => {
+                        const errorMessage = error.message;
+                        alert(errorMessage);
+                    });
+            }
+        })
+        .catch((error) => {
+            const errorMessage = error.message;
+            alert(errorMessage);
+        });
+}
+            signUpButton.addEventListener('click', createAccount);
+
+            googleSignupButton.addEventListener('click', (e) => {
+                signInWithPopup(auth, googleProvider)
+                    .then((result) => {
+                        // Pode acessar as informações do usuário em result.user
+                        alert('Logged in with Google!');
+                    })
+                    .catch((error) => {
+                        const errorMessage = error.message;
+                        alert(errorMessage);
+                    });
+            });
+
+            // Event Listener para redirecionar para a página de login quando o botão "Já tenho uma conta" for clicado
+            loginButton.addEventListener('click', () => {
+                window.location.href = 'index.html'; // Redirecionar para a página de login
+            });
+
+           // Adicionar funcionalidade para pressionar "Enter" em qualquer um dos campos
+           usernameField.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    createAccount();
+                }
+            });
+
+            emailField.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    createAccount();
+                }
+            });
+
+            passwordField.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    createAccount();
+                }
+            });
+});
+    </script>
+</body>
+</html>
