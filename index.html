@@ -29,18 +29,18 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getDatabase, set, ref, update } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+        import { getDatabase, set, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
         const firebaseConfig = {
-    apiKey: "AIzaSyBnOWQAe0tMFlMGn80Lhaue6HEBG1xwpQU",
-    authDomain: "authentication-96efe.firebaseapp.com",
-    databaseURL: "https://authentication-96efe-default-rtdb.firebaseio.com",
-    projectId: "authentication-96efe",
-    storageBucket: "authentication-96efe.appspot.com",
-    messagingSenderId: "594458889142",
-    appId: "1:594458889142:web:901ace0ef37438163a8f17"
-  };
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -54,6 +54,21 @@
             const googleLoginButton = document.getElementById('google-login');
             const logoutButton = document.getElementById('logout');
 
+            // Função para exibir os dados do usuário no Firebase Realtime Database
+            function displayUserDataInDatabase(user) {
+                const uid = user.uid;
+                const userRef = ref(database, 'users/' + uid);
+
+                onValue(userRef, (snapshot) => {
+                    const userData = snapshot.val();
+
+                    if (userData) {
+                        // Exibe os dados do usuário no console (você pode exibi-los na página como desejar)
+                        console.log('User Data:', userData);
+                    }
+                });
+            }
+
             signUpButton.addEventListener('click', (e) => {
                 var email = document.getElementById('email').value;
                 var password = document.getElementById('password').value;
@@ -63,9 +78,11 @@
                     .then((userCredential) => {
                         const user = userCredential.user;
 
+                        // Crie um registro para o usuário no Firebase Realtime Database
                         set(ref(database, 'users/' + user.uid), {
                             username: username,
-                            email: email
+                            email: email,
+                            // Outros dados do usuário podem ser adicionados aqui
                         });
 
                         alert('User created!');
@@ -101,7 +118,11 @@
                 signInWithPopup(auth, googleProvider)
                     .then((result) => {
                         // Pode acessar as informações do usuário em result.user
+                        const user = result.user;
                         alert('Logged in with Google!');
+
+                        // Exibe os dados do usuário no Firebase Realtime Database
+                        displayUserDataInDatabase(user);
                     })
                     .catch((error) => {
                         const errorMessage = error.message;
